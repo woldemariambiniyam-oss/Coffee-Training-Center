@@ -150,12 +150,12 @@ router.post('/', authenticateToken, authorizeRoles('admin'), [
   }
 });
 
-// Update user (admin only, or own profile for limited fields)
 router.put('/:id', authenticateToken, [
   body('firstName').optional().trim().notEmpty(),
   body('lastName').optional().trim().notEmpty(),
   body('phone').optional().trim(),
-  body('status').optional().isIn(['active', 'inactive', 'suspended'])
+  body('status').optional().isIn(['active', 'inactive', 'suspended']),
+  body('role').optional().isIn(['trainee', 'trainer', 'admin', 'public_verifier'])
 ], async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -164,7 +164,7 @@ router.put('/:id', authenticateToken, [
     }
 
     const userId = parseInt(req.params.id);
-    const { firstName, lastName, phone, status } = req.body;
+    const { firstName, lastName, phone, status, role } = req.body;
 
     // Check permissions
     if (req.user.role !== 'admin' && req.user.id !== userId) {
@@ -194,6 +194,12 @@ router.put('/:id', authenticateToken, [
     if (status && req.user.role === 'admin') {
       updates.push('status = ?');
       params.push(status);
+    }
+
+    // Only admins can update role
+    if (role && req.user.role === 'admin') {
+      updates.push('role = ?');
+      params.push(role);
     }
 
     if (updates.length === 0) {

@@ -1,88 +1,158 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { Eye, EyeOff, Coffee, Mail, Lock } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { Button, Input, Card } from '../components/ui'
+import { showToast } from '../components/ui/ToastContainer'
 
 const Login = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  })
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
+  const handleChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
 
     try {
-      await login(email, password)
+      await login(formData.email, formData.password)
+      showToast('Welcome back! Login successful.', 'success')
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed')
+      const errorMessage = err.response?.data?.error || 'Login failed. Please try again.'
+      showToast(errorMessage, 'error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-md mx-auto mt-20">
-      <div className="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-secondary-50 to-neutral-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="w-full max-w-md"
+      >
+        {/* Logo and Title */}
+        <div className="text-center mb-8">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-coffee rounded-2xl mb-4"
+          >
+            <Coffee className="w-8 h-8 text-white" />
+          </motion.div>
+          <h1 className="text-3xl font-display font-bold text-primary-700 dark:text-primary-300 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-text-secondary">
+            Sign in to your Coffee Training Center account
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
+        {/* Login Form */}
+        <Card className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Input
+              label="Email Address"
+              name="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter your email"
+              icon={<Mail className="w-4 h-4" />}
               required
             />
-          </div>
 
-          <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
-            />
-          </div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-text-primary">
+                Password
+              </label>
+              <div className="relative">
+                <Input
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                  icon={<Lock className="w-4 h-4" />}
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
 
-          <div className="flex items-center justify-between">
-            <button
+            <Button
               type="submit"
+              className="w-full"
+              loading={loading}
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
             >
-              {loading ? 'Logging in...' : 'Sign In'}
-            </button>
-          </div>
-        </form>
+              {loading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </form>
 
-        <p className="text-center text-gray-600 text-sm mt-4">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-800">
-            Register here
-          </Link>
-        </p>
-      </div>
+          {/* Forgot Password Link */}
+          <div className="mt-4 text-center">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+            >
+              Forgot your password?
+            </Link>
+          </div>
+
+          {/* Register Link */}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-text-secondary">
+              Don't have an account?{' '}
+              <Link
+                to="/register"
+                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors"
+              >
+                Create one here
+              </Link>
+            </p>
+          </div>
+        </Card>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="text-center mt-8 text-xs text-text-muted"
+        >
+          <p>© 2024 Coffee Training Center. All rights reserved.</p>
+        </motion.div>
+      </motion.div>
     </div>
   )
 }

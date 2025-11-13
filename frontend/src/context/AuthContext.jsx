@@ -55,6 +55,21 @@ export const AuthProvider = ({ children }) => {
     return response.data
   }
 
+  const forgotPassword = async (email) => {
+    const response = await api.post('/auth/password-reset/request', { email })
+    return response.data
+  }
+
+  const verifyResetToken = async (token) => {
+    const response = await api.get(`/auth/password-reset/verify/${token}`)
+    return response.data
+  }
+
+  const resetPassword = async (token, password) => {
+    const response = await api.post('/auth/password-reset/reset', { token, password })
+    return response.data
+  }
+
   const logout = () => {
     localStorage.removeItem('token')
     delete api.defaults.headers.common['Authorization']
@@ -62,7 +77,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, forgotPassword, verifyResetToken, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   )
