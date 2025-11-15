@@ -14,7 +14,8 @@ import {
   LogOut,
   Moon,
   Sun,
-  Coffee
+  Coffee,
+  BookOpen
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
@@ -38,6 +39,7 @@ const Navbar = () => {
     { path: '/queue', label: 'Queue', icon: Users, roles: ['admin', 'trainer', 'trainee'] },
     { path: '/exams', label: 'Exams', icon: FileText, roles: ['admin', 'trainer', 'trainee'] },
     { path: '/certificates', label: 'Certificates', icon: Award, roles: ['admin', 'trainer', 'trainee'] },
+    { path: '/programs', label: 'Programs', icon: BookOpen, roles: ['admin'] },
     { path: '/reports', label: 'Reports', icon: BarChart3, roles: ['admin', 'trainer'] },
     { path: '/users', label: 'User Management', icon: Settings, roles: ['admin'] },
   ]

@@ -8,35 +8,43 @@ const router = express.Router();
 // Get all training sessions
 router.get('/', authenticateToken, async (req, res, next) => {
   try {
-    const { status, upcoming } = req.query;
-    
+    const { status, upcoming, programId } = req.query;
+
     let query = `
-      SELECT 
+      SELECT
         ts.*,
         u.first_name as trainer_first_name,
         u.last_name as trainer_last_name,
+        tp.name as program_name,
+        tp.code as program_code,
         COUNT(se.id) as enrolled_count
       FROM training_sessions ts
       LEFT JOIN users u ON ts.trainer_id = u.id
+      LEFT JOIN training_programs tp ON ts.program_id = tp.id
       LEFT JOIN session_enrollments se ON ts.id = se.session_id AND se.status = 'registered'
       WHERE 1=1
     `;
-    
+
     const params = [];
-    
+
     if (status) {
       query += ' AND ts.status = ?';
       params.push(status);
     }
-    
+
     if (upcoming === 'true') {
       query += ' AND ts.session_date > NOW()';
     }
-    
+
+    if (programId) {
+      query += ' AND ts.program_id = ?';
+      params.push(programId);
+    }
+
     query += ' GROUP BY ts.id ORDER BY ts.session_date ASC';
-    
+
     const [sessions] = await pool.execute(query, params);
-    
+
     res.json(sessions);
   } catch (error) {
     next(error);
@@ -88,7 +96,8 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'trainer'), [
   body('title').trim().notEmpty(),
   body('sessionDate').isISO8601(),
   body('durationMinutes').isInt({ min: 1 }),
-  body('maxCapacity').isInt({ min: 1 })
+  body('maxCapacity').isInt({ min: 1 }),
+  body('programId').optional().isInt()
 ], async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -96,14 +105,27 @@ router.post('/', authenticateToken, authorizeRoles('admin', 'trainer'), [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, description, sessionDate, durationMinutes, maxCapacity, location } = req.body;
+    const { title, description, sessionDate, durationMinutes, maxCapacity, location, programId } = req.body;
     const trainerId = req.user.role === 'trainer' ? req.user.id : req.body.trainerId || null;
 
+    // Check for trainer conflicts if trainerId is provided
+    if (trainerId) {
+      const [conflicts] = await pool.execute(
+        `SELECT id FROM training_sessions
+         WHERE trainer_id = ? AND session_date = ? AND status != 'cancelled'`,
+        [trainerId, sessionDate]
+      );
+
+      if (conflicts.length > 0) {
+        return res.status(409).json({ error: 'Trainer has a conflicting session at this time' });
+      }
+    }
+
     const [result] = await pool.execute(
-      `INSERT INTO training_sessions 
-       (title, description, trainer_id, session_date, duration_minutes, max_capacity, location)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [title, description || null, trainerId, sessionDate, durationMinutes, maxCapacity, location || null]
+      `INSERT INTO training_sessions
+       (title, description, trainer_id, session_date, duration_minutes, max_capacity, location, program_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, description || null, trainerId, sessionDate, durationMinutes, maxCapacity, location || null, programId || null]
     );
 
     const [newSession] = await pool.execute(

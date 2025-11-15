@@ -17,6 +17,7 @@ import Certificates from './pages/Certificates'
 import CertificateVerify from './pages/CertificateVerify'
 import Reports from './pages/Reports'
 import UserManagement from './pages/UserManagement'
+import Programs from './pages/Programs'
 
 function App() {
   return (
@@ -93,6 +94,14 @@ function App() {
                   element={
                     <PrivateRoute>
                       <UserManagement />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/programs"
+                  element={
+                    <PrivateRoute>
+                      <Programs />
                     </PrivateRoute>
                   }
                 />

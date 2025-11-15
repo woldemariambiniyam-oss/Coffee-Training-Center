@@ -22,6 +22,7 @@ const certificateCollectionRoutes = require('./routes/certificateCollection');
 const publicVerifyRoutes = require('./routes/publicVerify');
 const communicationRoutes = require('./routes/communication');
 const userRoutes = require('./routes/users');
+const programRoutes = require('./routes/programs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -65,7 +66,8 @@ app.get('/', (req, res) => {
       rankings: '/api/rankings',
       questionBank: '/api/question-bank',
       publicVerify: '/api/public-verify',
-      communication: '/api/communication'
+      communication: '/api/communication',
+      programs: '/api/programs'
     },
     documentation: '/docs'
   });
@@ -87,6 +89,7 @@ app.use('/api/certificate-collection', certificateCollectionRoutes);
 app.use('/api/public-verify', publicVerifyRoutes);
 app.use('/api/communication', communicationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/programs', programRoutes);
 
 // 404 handler
 app.use((req, res) => {
