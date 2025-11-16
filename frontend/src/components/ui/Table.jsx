@@ -104,7 +104,7 @@ const Table = ({
                   onClick={() => column.sortable !== false && handleSort(column.key)}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
+                    <span>{column.label || column.header}</span>
                     {column.sortable !== false && sortable && getSortIcon(column.key)}
                   </div>
                 </th>
@@ -132,7 +132,7 @@ const Table = ({
                 >
                   {columns.map((column) => (
                     <td key={column.key} className="px-6 py-4 whitespace-nowrap text-sm text-text-primary">
-                      {column.render ? column.render(item[column.key], item) : item[column.key]}
+                      {column.render ? column.render(item) : item[column.key]}
                     </td>
                   ))}
                 </motion.tr>

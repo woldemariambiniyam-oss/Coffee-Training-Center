@@ -101,11 +101,11 @@ const Reports = () => {
   }
 
   const attendanceData = {
-    labels: attendance.map(a => a.title),
+    labels: (attendance || []).map(a => a.title || 'Session'),
     datasets: [
       {
         label: 'Attended',
-        data: attendance.map(a => a.attended_count),
+        data: (attendance || []).map(a => Number(a.attended_count || 0)),
         backgroundColor: '#10b981',
         borderColor: '#059669',
         borderWidth: 1,
@@ -114,7 +114,7 @@ const Reports = () => {
       },
       {
         label: 'Absent',
-        data: attendance.map(a => a.absent_count),
+        data: (attendance || []).map(a => Number(a.absent_count || 0)),
         backgroundColor: '#ef4444',
         borderColor: '#dc2626',
         borderWidth: 1,
@@ -125,11 +125,11 @@ const Reports = () => {
   }
 
   const performanceData = {
-    labels: performance.map(p => p.exam_title),
+    labels: (performance || []).map(p => p.exam_title || 'Exam'),
     datasets: [
       {
         label: 'Average Score (%)',
-        data: performance.map(p => p.average_score?.toFixed(2) || 0),
+        data: (performance || []).map(p => Number((p.average_score ?? 0).toFixed ? p.average_score.toFixed(2) : p.average_score || 0)),
         backgroundColor: '#3b82f6',
         borderColor: '#2563eb',
         borderWidth: 1,
@@ -140,11 +140,11 @@ const Reports = () => {
   }
 
   const enrollmentTrendsData = {
-    labels: enrollmentTrends.map(t => t.month),
+    labels: (enrollmentTrends || []).map(t => t.month || ''),
     datasets: [
       {
         label: 'Enrollments',
-        data: enrollmentTrends.map(t => t.enrollment_count),
+        data: (enrollmentTrends || []).map(t => Number(t.enrollment_count || 0)),
         borderColor: '#8b5cf6',
         backgroundColor: 'rgba(139, 92, 246, 0.1)',
         tension: 0.4,
@@ -162,9 +162,9 @@ const Reports = () => {
     datasets: [
       {
         data: [
-          certificateStats.reduce((sum, c) => sum + (c.issued_count || 0), 0),
-          certificateStats.reduce((sum, c) => sum + (c.revoked_count || 0), 0),
-          certificateStats.reduce((sum, c) => sum + (c.expired_count || 0), 0)
+          (certificateStats || []).reduce((sum, c) => sum + Number(c.issued_count || 0), 0),
+          (certificateStats || []).reduce((sum, c) => sum + Number(c.revoked_count || 0), 0),
+          (certificateStats || []).reduce((sum, c) => sum + Number(c.expired_count || 0), 0)
         ],
         backgroundColor: [
           '#10b981',
